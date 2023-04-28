@@ -94,11 +94,14 @@
             <tbody>
                 @foreach ($awards as $award)
                 <tr>
+                  @php
+                      $award->hashid = Hashids::connection('award')->encode($award->id);
+                  @endphp
                     <th scope="row">{{$loop->iteration}}</th>
                     <td>{{$award->name}}</td>
                     <td>{{$award->description}}</td>
                     <td>{{$award->criteria}}</td>
-                    <td><a href="" class="btn btn-sm btn-success">Vote</a></td>
+                    <td><a href="{{route('admin.load_judging_award_nominees', [request()->segment(3), request()->segment(7), $award->hashid])}}" class="btn btn-sm btn-success">Vote</a></td>
                 </tr>  
                   <br>
               @endforeach

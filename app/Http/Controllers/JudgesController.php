@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin;
+use App\Models\Award;
 use App\Models\Judge;
 use App\Models\Sector;
 use App\Models\Category;
 use App\Models\AwardProgram;
+use App\Models\Nominee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
@@ -134,7 +136,25 @@ class JudgesController extends Controller
         return view('contents.admin.judgingCategoriesSectors', $data);
     }
 
-    // public function loadJudgingAwards(){
-    //     return 'That was a BANG !!!';
-    // }
+    public function loadJudgingAwardNominees(Request $request, $award_program, $sector, $award){
+        $award_program_id = Hashids::connection('awardProgram')->decode($award_program);
+        $sector_id = Hashids::connection('sector')->decode($sector);
+        $award_id = Hashids::connection('award')->decode($award);
+        if (isset($award_program_id[0]) && AwardProgram::where('id', $award_program_id[0])->exists()) {
+            $data['award'] = Award::where('id', $award_id)->first();
+            $data['nominees'] = [];
+            $nominees = Nominee::where('sector_id', $sector_id)->get();
+            foreach ($nominees as $nominee) {
+                // array_push($data['nominees'], json_decode($nominee->award_ids));
+                if (in_array($award_id[0], json_decode($nominee->award_ids))) {
+                    array_push($data['nominees'], $nominee);
+                }
+            }
+            // dd($award_id, $data['nominees']);
+        }else{
+            $request->session()->flash('danger', 'Invalid Award Program');
+            return redirect()->route('admin.get_judges', $award_program);
+        }
+        return view('contents.admin.nominees', $data);
+    }
 }
