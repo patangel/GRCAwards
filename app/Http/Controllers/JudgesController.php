@@ -6,13 +6,16 @@ use App\Models\Admin;
 use App\Models\Award;
 use App\Models\Judge;
 use App\Models\Sector;
-use App\Models\Category;
-use App\Models\AwardProgram;
 use App\Models\Nominee;
+use App\Models\Category;
+use App\Models\Judgevote;
+use App\Models\AwardProgram;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 
 class JudgesController extends Controller
 {
@@ -143,18 +146,48 @@ class JudgesController extends Controller
         if (isset($award_program_id[0]) && AwardProgram::where('id', $award_program_id[0])->exists()) {
             $data['award'] = Award::where('id', $award_id)->first();
             $data['nominees'] = [];
+            // $data['nomineevotes'] = Judgevote::get();
             $nominees = Nominee::where('sector_id', $sector_id)->get();
             foreach ($nominees as $nominee) {
-                // array_push($data['nominees'], json_decode($nominee->award_ids));
                 if (in_array($award_id[0], json_decode($nominee->award_ids))) {
+                    $nominee->novotes = Judgevote::where([['nominee_id', '=', $nominee->id], ['award_id', '=', $award_id]])->count();
                     array_push($data['nominees'], $nominee);
                 }
             }
-            // dd($award_id, $data['nominees']);
+            // dd($data['nominees']);
         }else{
             $request->session()->flash('danger', 'Invalid Award Program');
             return redirect()->route('admin.get_judges', $award_program);
         }
         return view('contents.admin.nominees', $data);
+    }
+
+    public function castJudgeVote(Request $request, $award_program, $nominee, $award){
+        $award_program_id = Hashids::connection('awardProgram')->decode($award_program);
+        $nominee_id = Hashids::connection('nominee')->decode($nominee);
+        $award_id = Hashids::connection('award')->decode($award);
+        $judge_id = Judge::where('admin_id', Auth::guard('admin')->id())->first()->id;
+        if (isset($award_program_id[0]) && AwardProgram::where('id', $award_program_id[0])->exists()) {
+            $voteexist = Judgevote::where([['nominee_id', '=', $nominee_id], ['award_id', '=', $award_id]])->count();
+            if ($voteexist < 1) {
+                $votedata = [
+                    'award_program_id' => $award_program_id[0],
+                    'judges_id' => $judge_id,
+                    'nominee_id' => $nominee_id[0],
+                    'award_id' => $award_id[0],
+                ];
+                DB::table('judgevotes')->insert($votedata);
+                $request->session()->flash('success', 'Your vote has been recorded');
+            } else {
+                //set flash message
+                $request->session()->flash('danger', 'You already voted for this nominee');
+            }
+            
+        }else{
+            $request->session()->flash('danger', 'Invalid Award Program');
+            return redirect()->route('admin.get_judges', $award_program);
+        }
+        // return redirect()->route('admin.load_judging_award_nominees', [request()->segment(3), request()->segment(7), $award->hashid]);
+        return Redirect::to(url()->previous());
     }
 }

@@ -66,11 +66,15 @@
                       </thead>
                       <tbody>
                           @foreach ($nominees as $nominee)
+                            @php
+                                $award->hashid = Hashids::connection('award')->encode($award->id);
+                                $nominee->hashid = Hashids::connection('nominee')->encode($nominee->id);
+                            @endphp
                           <tr>
                               <th scope="row">{{$loop->iteration}}</th>
                               <td>{{$nominee->name}}</td>
-                              <td><span class="badge bg-info px-2 py-1">25</span></td>
-                              <td> <a href="#" class="btn btn-primary btn-sm">Cast Vote</a> </td>
+                              <td><span class="badge bg-info px-2 py-1">{{$nominee->novotes}}</span></td>
+                              <td> <a href="{{route('admin.castvote', [request()->segment(3), $nominee->hashid, $award->hashid])}}" class="btn btn-primary btn-sm">Cast Vote</a> </td>
                             </tr>
                           @endforeach
                     </tbody>
@@ -89,4 +93,30 @@
 <!-- demo app -->
 <script src="assets/js/pages/demo.dashboard-analytics.js"></script>
 <!-- end demo js-->
+
+<script src="{{asset('public/assets/js/pages/sector.js')}}"></script>
+
+    @if(Session::has('success'))
+    <script>
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "preventDuplicates": true,
+            "preventOpenDuplicates": true
+        }
+        toastr.success("{{ session('success') }}");
+    </script>
+    @endif
+
+    @if(Session::has('danger'))
+    <script>
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "preventDuplicates": true,
+            "preventOpenDuplicates": true
+        }
+        toastr.error("{{ session('danger') }}");
+    </script>
+    @endif
 @endsection

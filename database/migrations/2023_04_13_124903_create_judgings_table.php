@@ -26,6 +26,12 @@ class CreateJudgingsTable extends Migration
             $table->string('nominee_id')->references('id')->on('nominees')->onDelete('cascade')->nullable();
             $table->timestamps();
         });
+
+
+        //Insert Some Data to the DB
+        // foreach ($judges as $judge){
+        //     DB::table('judges')->insert($judge);
+        // }
     }
 
     /**
