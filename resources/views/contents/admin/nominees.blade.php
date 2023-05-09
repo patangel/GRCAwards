@@ -61,6 +61,9 @@
                           <th scope="col">S/N</th>
                           <th scope="col">Nominee</th>
                           <th scope="col">No. of Votes</th>
+                          @foreach ($judgingcriteria as $criteria)
+                            <th scope="col">{{Str::title($criteria->criteria_title)}}</th>
+                          @endforeach
                           <th scope="col">Actions</th>
                         </tr>
                       </thead>
@@ -74,7 +77,10 @@
                               <th scope="row">{{$loop->iteration}}</th>
                               <td>{{$nominee->name}}</td>
                               <td><span class="badge bg-info px-2 py-1">{{$nominee->novotes}}</span></td>
-                              <td> <a href="{{route('admin.castvote', [request()->segment(3), $nominee->hashid, $award->hashid])}}" class="btn btn-primary btn-sm">Cast Vote</a> </td>
+                              @for ($i = 0; $i < count($judgingcriteria); $i++)
+                              <td> {{ $i }} </td>
+                              @endfor
+                              <td> <a href="{{route('admin.castvote', [request()->segment(3), $nominee->hashid, $award->hashid])}}" class="btn btn-primary btn-sm">Set Score</a> </td>
                             </tr>
                           @endforeach
                     </tbody>

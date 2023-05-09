@@ -19,6 +19,13 @@ use Illuminate\Support\Facades\Redirect;
 
 class JudgesController extends Controller
 {
+
+    // public function __construct()
+    // {
+    //     // $this->middleware('auth')->except(['index', 'show']);
+    //     $this->middleware('auth');
+    // }
+
     public function getJudges(Request $request, $award_program){
         //not sure what this does
         $award_program_id = Hashids::connection('awardProgram')->decode($award_program);
@@ -146,7 +153,8 @@ class JudgesController extends Controller
         if (isset($award_program_id[0]) && AwardProgram::where('id', $award_program_id[0])->exists()) {
             $data['award'] = Award::where('id', $award_id)->first();
             $data['nominees'] = [];
-            // $data['nomineevotes'] = Judgevote::get();
+            $data['judgingcriteria'] = DB::table('judging_criterias')->where('award_id', $award_id[0])->get();
+            // dd($award_id, $data['judgingcriteria']);
             $nominees = Nominee::where('sector_id', $sector_id)->get();
             foreach ($nominees as $nominee) {
                 if (in_array($award_id[0], json_decode($nominee->award_ids))) {
